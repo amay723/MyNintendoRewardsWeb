@@ -1,0 +1,56 @@
+.App {
+  text-align: center;
+  min-height: 86vh;
+}
+
+p {
+  margin: 0;
+}
+
+.updated-title {
+  margin-top: 10px;
+}
+
+.custom-select {
+  width: 25vw;
+  margin-top: 10px;
+  margin-bottom: 15px;
+}
+
+.store-bar {
+  display: flex;
+  justify-content: center;
+}
+
+code {
+  background-color: #eee;
+  border-radius: 3px;
+  padding: 0 3px;
+}
+
+@media (max-width: 860px) {
+  .updated-title {
+    font-size: 1.6rem;
+  }
+  .custom-select {
+    width: 33vw;
+  }
+}
+
+@media (max-width: 725px) {
+  .updated-title {
+    font-size: 1.4rem;
+  }
+  .custom-select {
+    width: 40vw;
+  }
+}
+
+@media (max-width: 575px) {
+  .updated-title {
+    font-size: 1.2rem;
+  }
+  .custom-select {
+    width: 50vw;
+  }
+}

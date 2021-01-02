@@ -1,0 +1,24 @@
+.bell, .bell-loader {
+    width: 24px;
+    height: 24px;
+    margin-left: 10px;
+    } 
+
+.bell {
+    cursor: pointer;
+    margin-top: 16px;
+}
+
+.bell-loader {
+    margin-top: 12px;
+}
+
+.bell:hover {
+    color: blue;
+}
+
+.help {
+    cursor: pointer;
+    margin-top: 22px;
+    font-size: .8rem;
+}

@@ -1,0 +1,10 @@
+.toasts {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    z-index: 99;
+}
+
+.toasts .toast-header > strong {
+    margin-right: 1em;
+}
