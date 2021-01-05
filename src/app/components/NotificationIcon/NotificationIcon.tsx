@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Modal, Button } from 'react-bootstrap'
-import { functions, messaging } from '../../firebase'
+import { analytics, functions, messaging } from '../../firebase'
 import { 
     SUBSCRIBED_TOPICS_STORAGE_NAME,
     RATE_LIMIT_TIMESTAMPS,
@@ -59,6 +59,12 @@ const NotificationIcon: React.FC<Props> = ({ storeSelectorRef }) => {
                 // Check if currently selected location has notifications set
                 const updatedTopics: string[] = JSON.parse(subscribedTopics)
                 const topicIdx = updatedTopics.indexOf(TOPIC_ID)
+
+                // Log event for analytics
+                analytics.logEvent('notification_click', {
+                    topic,
+                    action: topicIdx === -1 ? 'subscribe' : 'unsubscribe'
+                })
                 
                 // Send server user subscribe request
                 const updateTopicSubscription = functions.httpsCallable('updateTopicSubscription');
@@ -87,17 +93,22 @@ const NotificationIcon: React.FC<Props> = ({ storeSelectorRef }) => {
 
     // Local rate limiting for notification clicks
     const subscribeToTopicWithRate = () => {
-        RATE_LIMIT_TIMESTAMPS.push(Date.now())
+        // Record this click's timestamp into the overall click history array
+        const currentTimestamp = Date.now()
+        RATE_LIMIT_TIMESTAMPS.push(currentTimestamp)
 
+        // Check if RATE_LIMIT_CALL_NUMBER is exceeded
         const lengthExceeded = RATE_LIMIT_TIMESTAMPS.length >= RATE_LIMIT_CALL_NUMBER
 
-        const elapsedTimeSinceOldest = (Date.now()-RATE_LIMIT_TIMESTAMPS[0])/1000
+        // Check if oldest recorded click in history array is within RATE_LIMIT_PERIOD_SECONDS
+        const elapsedTimeSinceOldest = (currentTimestamp-RATE_LIMIT_TIMESTAMPS[0])/1000
         const oldestTimeTooRecent = elapsedTimeSinceOldest < RATE_LIMIT_PERIOD_SECONDS
 
         // remove oldest time if list is full
         if( lengthExceeded )
             RATE_LIMIT_TIMESTAMPS.splice(0,1)
 
+        // Only perform a topic subscription if the click rate was not exceeded
         if( lengthExceeded && oldestTimeTooRecent )
             alert('Please slow it down :)')
         else

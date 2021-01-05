@@ -2,7 +2,7 @@ import firebase from 'firebase/app'
 import 'firebase/firestore'
 import 'firebase/functions'
 import 'firebase/messaging'
-// import 'firebase/analytics'
+import 'firebase/analytics'
 
 firebase.initializeApp({
   apiKey: process.env.REACT_APP_API_KEY,
@@ -11,8 +11,8 @@ firebase.initializeApp({
   appId: process.env.REACT_APP_APP_ID,
   measurementId: process.env.REACT_APP_MEASUREMENT_ID
 });
-// firebase.analytics();
 
+export const analytics = firebase.analytics();
 export const firestore = firebase.firestore();
 export const functions = firebase.functions();
 export const messaging = firebase.messaging.isSupported() ? firebase.messaging() : null;
