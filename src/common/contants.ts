@@ -23,4 +23,9 @@ export const STORE_LOCATIONS: storeLocationsType = {
         categoryName: 'nintendo_store',
         region: 'us-central1',
     },
+    EU: {
+        name: 'Europe (experimental)',
+        categoryName: 'my_nintendo_store',
+        region: 'doesnt-matter'
+    }
 }
