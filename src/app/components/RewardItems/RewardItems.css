@@ -52,6 +52,7 @@
   height: 25%;
   border-top-left-radius: 16px;
   background-size: 100%;
+  pointer-events: none;
 }
 
 @media (max-width: 860px) {
