@@ -24,7 +24,7 @@ Each reward item displayed shows its available stock in realtime (after each upd
 - **Run for Development**:
     - `firebase deploy --only functions,firestore` to deploy all required cloud functions and Firestore settings
         - TODO: Use the `Firebase Emulator` instead
-    - `yarn && yarn build` to install all dependencies and build the UI
+    - `yarn` to install all dependencies
     - `yarn start` to start the local UI development environment
 - **Run for Production**:
     - `yarn && yarn build` to install all dependencies and build the UI

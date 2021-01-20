@@ -29,7 +29,7 @@ const Toasts: React.FC = () => {
 
                 const newList = [...toastList];
                 newList.push({
-                    timestamp: parseInt(timestamp) * 1000, 
+                    timestamp: parseInt(timestamp) * 1000, // convert seconds to milliseconds
                     id, 
                     data: {
                         title, 

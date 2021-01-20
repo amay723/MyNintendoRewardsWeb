@@ -46,7 +46,7 @@ const NotificationIcon: React.FC<Props> = ({ storeSelectorRef }) => {
     const subscribeToTopic = () => {
 
         if( messaging === null ) {
-            alert('Your browser does not support notifications')
+            alert('Your browser does not support web push notifications')
             return
         }
 
@@ -63,6 +63,7 @@ const NotificationIcon: React.FC<Props> = ({ storeSelectorRef }) => {
                 // Log event for analytics
                 analytics.logEvent('notification_click', {
                     topic,
+                    location,
                     action: topicIdx === -1 ? 'subscribe' : 'unsubscribe'
                 })
                 
