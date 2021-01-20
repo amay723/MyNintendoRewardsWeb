@@ -43,6 +43,17 @@
   color: blue;
 }
 
+.new-item {
+  background-image: url(https://cdn.my.nintendo.com/static/dist/images/pc/common/new/en-us.a6a19b5111ccb93e.png);
+  background-repeat: no-repeat;
+  display: block;
+  position: absolute;
+  width: 25%;
+  height: 25%;
+  border-top-left-radius: 16px;
+  background-size: 100%;
+}
+
 @media (max-width: 860px) {
   .card {
     min-width: 23vw;

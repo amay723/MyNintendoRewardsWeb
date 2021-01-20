@@ -23,12 +23,22 @@ const RewardItems: React.FC<Props> = ({ setLastUpdated, storeLocation, storeSele
       })
     return snapshotUnsubscribe
     }, [setLastUpdated, storeLocation, storeSelectorRef])
+  
+  // Calculates whether an item was published within the last week
+  const isNewItem = (itemBeginsAt: number) => {
+    return (Date.now() / 1000 - itemBeginsAt) < 604800
+  }
 
   return (
     <div className="card-group">
       { rewards !== null ?
         rewards.map( (item: RewardItem) => (
           <div className="card" key={item.id}>
+
+            { isNewItem(item.beginsAt) &&
+              <i className="new-item" />
+            }
+
             <a href={item.links.myNintendo.href} target="_blank" rel="noreferrer noopener">
               <img className="card-img-top" src={item.images.default.url} alt={item.title} />
             </a>

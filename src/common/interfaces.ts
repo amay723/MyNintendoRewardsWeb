@@ -25,6 +25,7 @@ export interface RewardItem {
     category: string;
     type: string;
     id: string;
+    beginsAt: number;
     endsAt: number;
     stock: { 
       remains: number; 

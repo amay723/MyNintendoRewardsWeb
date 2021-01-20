@@ -66,11 +66,9 @@ const getRewardsList = async(categoryName: string): Promise<RewardItem[]> => {
     // Filter out all but nintendo_store items. Remove unneeded data to reduce bandwidth as 
     // original object contains much more than just RewardItem properties
     const nintendo_store_rewards: RewardItem[] = embeddedResponses.api_reward_list.data.items
-        .filter( (item: RewardItem) => (
-            (item.category === categoryName) && (item.type === "stocked_code") 
-        ))
-        .map( ({ title, category, type, id, endsAt, stock, points, links, images }): RewardItem => {
-            return { title, category, type, id, endsAt, stock, points, links, images }
+        .filter( (item: RewardItem) => item.category === categoryName )
+        .map( ({ title, category, type, id, beginsAt, endsAt, stock, points, links, images }): RewardItem => {
+            return { title, category, type, id, beginsAt, endsAt, stock, points, links, images }
         })
 
     return nintendo_store_rewards;
