@@ -46,3 +46,12 @@ export interface RewardItem {
       }; 
     };
   };
+
+// Reward History
+export type RewardHistoryItem = {
+  timestamp: number;
+  stock: number;
+}
+export interface RewardHistory {
+  [id: string]: RewardHistoryItem[];
+}

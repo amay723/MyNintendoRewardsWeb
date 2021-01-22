@@ -13,6 +13,7 @@ Each reward item displayed shows its available stock in realtime (after each upd
     - Cloud Functions
     - Cloud Messaging
 - [Bootstrap](https://getbootstrap.com/) and [react-bootstrap](https://react-bootstrap.github.io/)
+- [ApexCharts](https://apexcharts.com/)
 - Additional Libraries
     - [react-timeago](https://www.npmjs.com/package/react-timeago)
 

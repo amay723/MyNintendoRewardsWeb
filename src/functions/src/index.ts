@@ -6,8 +6,9 @@ import fetch from 'node-fetch'
 // Project type definitions & constants
 import {
     RewardItem,
-    countryCode,
     updateTopicSubscriptionData,
+    RewardHistoryItem,
+    RewardHistory,
 } from '../../common/interfaces'
 import {
     SITE_URL,
@@ -89,12 +90,54 @@ export const rewardsSync_US = functions
 
         const rewardList: RewardItem[] = await getRewardsList(STORE_LOCATIONS.US.categoryName);
 
+        const currentTimestamp = Date.now()
+
         const db = admin.firestore();
+
+        // Update current reward data
         await db.collection('rewards').doc('US').set({
-            lastUpdatedAt: Date.now(),
+            lastUpdatedAt: currentTimestamp,
             rewards: rewardList,
         })
 
+        // Update reward stock history
+        const rewardHistoryRef = db.collection('rewards-history').doc('US')
+        const rewardHistoryDoc = await rewardHistoryRef.get()
+        const rewardHistoryData = rewardHistoryDoc.data()
+
+        // Default to empty if no previous rewards for this region
+        const rewardHistory: RewardHistory = rewardHistoryData?.rewardHistory || {}
+
+        // Add stock values for each current reward item
+        rewardList.forEach( (item: RewardItem) => {
+
+            const newHistoryItem: RewardHistoryItem = {
+                timestamp: currentTimestamp,
+                stock: item.stock.remains,
+            }
+
+            if( rewardHistory[item.id] ) {
+                // only add new history items if the stock amount has changed
+                if( rewardHistory[item.id][rewardHistory[item.id].length - 1].stock !== newHistoryItem.stock ) {
+                    rewardHistory[item.id].push(newHistoryItem)
+                }
+            }
+            else {
+                // If item is new, initialize new list
+                rewardHistory[item.id] = [newHistoryItem]
+            }
+        })
+
+        // Remove all items not present in the current reward list
+        Object.keys(rewardHistory).forEach( id => {
+            rewardList.find( item => item.id === id) || delete rewardHistory[id]
+        })
+
+        // Save updated reward history
+        await rewardHistoryRef.set({
+            rewardHistory,
+        })
+        
         return null;
 })
 
@@ -159,7 +202,7 @@ export const updateTopicSubscription = functions
         }: updateTopicSubscriptionData = data;
 
         // Ensure location exists
-        if( ! STORE_LOCATIONS[location as countryCode] )
+        if( ! STORE_LOCATIONS[location] )
             throw new functions.https.HttpsError(
                 'failed-precondition', 
                 'The location does not exist.',
