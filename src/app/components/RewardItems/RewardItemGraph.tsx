@@ -1,4 +1,4 @@
-import React, { useEffect, useState, lazy, Suspense } from 'react'
+import { useEffect, useState, lazy, Suspense } from 'react'
 import { Modal, Button } from 'react-bootstrap'
 import { firestore } from '../../firebase'
 import { RewardHistoryItem, RewardItem } from '../../../common/interfaces';
@@ -127,7 +127,7 @@ const RewardItemGraph: React.FC<RewardItemGraphProps> = ({item, location, show, 
             </div>
           }
         </Modal.Body>
-        
+
         <Modal.Footer>
           <Button variant="secondary" onClick={handleClose}>
               Close
