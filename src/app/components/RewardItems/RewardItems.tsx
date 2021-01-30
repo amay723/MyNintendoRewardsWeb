@@ -64,7 +64,7 @@ const RewardItems: React.FC<Props> = ({ setLastUpdated, storeLocation, storeSele
               
             </div>
             <div className="card-footer">
-              <small className={item.stock.remains === 0 ? "red" : ""}><strong>{`Stock: ${item.stock.remains}/${item.stock.total}`}</strong></small>
+              <small className={item.stock.available ? "text-success" : "red"}><strong>{ item.stock.available ? "AVAILABLE" : "OUT OF STOCK"}</strong></small>
               <small className={item.points[0].category}><strong>{`Cost: ${item.points[0].amount}`}</strong></small>
             </div>
           </div> 

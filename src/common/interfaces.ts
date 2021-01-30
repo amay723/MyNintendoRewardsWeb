@@ -28,8 +28,7 @@ export interface RewardItem {
     beginsAt: number;
     endsAt: number;
     stock: { 
-      remains: number; 
-      total: number; 
+      available: boolean;
     };
     points: { 
       amount: number; 

@@ -7,8 +7,6 @@ import fetch from 'node-fetch'
 import {
     RewardItem,
     updateTopicSubscriptionData,
-    RewardHistoryItem,
-    RewardHistory,
 } from '../../common/interfaces'
 import {
     SITE_URL,
@@ -98,44 +96,6 @@ export const rewardsSync_US = functions
         await db.collection('rewards').doc('US').set({
             lastUpdatedAt: currentTimestamp,
             rewards: rewardList,
-        })
-
-        // Update reward stock history
-        const rewardHistoryRef = db.collection('rewards-history').doc('US')
-        const rewardHistoryDoc = await rewardHistoryRef.get()
-        const rewardHistoryData = rewardHistoryDoc.data()
-
-        // Default to empty if no previous rewards for this region
-        const rewardHistory: RewardHistory = rewardHistoryData?.rewardHistory || {}
-
-        // Add stock values for each current reward item
-        rewardList.forEach( (item: RewardItem) => {
-
-            const newHistoryItem: RewardHistoryItem = {
-                timestamp: currentTimestamp,
-                stock: item.stock.remains,
-            }
-
-            if( rewardHistory[item.id] ) {
-                // only add new history items if the stock amount has changed
-                if( rewardHistory[item.id][rewardHistory[item.id].length - 1].stock !== newHistoryItem.stock ) {
-                    rewardHistory[item.id].push(newHistoryItem)
-                }
-            }
-            else {
-                // If item is new, initialize new list
-                rewardHistory[item.id] = [newHistoryItem]
-            }
-        })
-
-        // Remove all items not present in the current reward list
-        Object.keys(rewardHistory).forEach( id => {
-            rewardList.find( item => item.id === id) || delete rewardHistory[id]
-        })
-
-        // Save updated reward history
-        await rewardHistoryRef.set({
-            rewardHistory,
         })
         
         return null;

@@ -30,6 +30,12 @@ const App = () => {
       <div className="App">
         <Toasts />
 
+        <div className="alert alert-secondary">
+          <u>
+            <strong>NOTICE:</strong> Item specific stock amounts are no longer available
+          </u>
+        </div>
+
         <h2 className="updated-title">
           Last Updated At: { lastUpdated ? new Date(lastUpdated).toLocaleString() : "loading..."}
         </h2>
