@@ -3,7 +3,6 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "apexcharts": "^3.23.1",
     "firebase": "^8.2.1",
     "react": "^17.0.1",
     "react-apexcharts": "^1.3.7",

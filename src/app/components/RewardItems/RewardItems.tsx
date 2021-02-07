@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react'
 import { firestore } from '../../firebase'
 import { RewardItem } from '../../../common/interfaces'
-import RewardItemGraph from './RewardItemGraph'
 import './RewardItems.css'
 
 
@@ -12,15 +11,6 @@ interface Props {
 }
 
 const RewardItems: React.FC<Props> = ({ setLastUpdated, storeLocation, storeSelectorRef }) => {
-
-  // Modal
-  const [show, setShow] = useState(false);
-  const [selectedReward, setSelectedReward] = useState<RewardItem | null>(null)
-  const handleClose = () => setShow(false);
-  const handleShow = (item: RewardItem) => {
-    setSelectedReward(item)
-    setShow(true)
-  };
 
   const [rewards, setRewards] = useState<RewardItem[] | null>(null)
 
@@ -41,8 +31,6 @@ const RewardItems: React.FC<Props> = ({ setLastUpdated, storeLocation, storeSele
 
   return (
     <div className="card-group">
-
-      <RewardItemGraph show={show} handleClose={handleClose} item={selectedReward} location={storeSelectorRef.current?.value} />
       
       { rewards !== null ?
         rewards.map( (item: RewardItem) => (
@@ -57,10 +45,6 @@ const RewardItems: React.FC<Props> = ({ setLastUpdated, storeLocation, storeSele
             </a>
             <div className="card-body">
               <h5 className="card-title">{item.title}</h5>
-
-              <i onClick={ () => handleShow(item)} className="material-icons graph-icon" title="Open Stock History Graph">
-                insert_chart_outlined
-              </i>
               
             </div>
             <div className="card-footer">

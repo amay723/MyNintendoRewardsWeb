@@ -59,17 +59,6 @@
   position: relative;
 }
 
-.graph-icon {
-  position: absolute;
-  right: 5%;
-  bottom: 2%;
-}
-
-.graph-icon:hover {
-  color: blue;
-  cursor: pointer;
-}
-
 @media (max-width: 860px) {
   .card {
     min-width: 23vw;
