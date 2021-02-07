@@ -12,6 +12,9 @@ firebase.initializeApp({
   measurementId: process.env.REACT_APP_MEASUREMENT_ID
 });
 
+if (process.env.NODE_ENV === "development")
+    firebase.functions().useEmulator('localhost', 5001)
+
 export const analytics = firebase.analytics();
 export const firestore = firebase.firestore();
 export const functions = firebase.functions();

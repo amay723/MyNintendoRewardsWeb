@@ -10,3 +10,9 @@ typings/
 
 # Node.js dependency directory
 node_modules/
+
+# Firebase emulator
+.runtimeconfig.json
+*-debug.log
+
+google-cloud-svc-key.json

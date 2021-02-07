@@ -1,8 +1,12 @@
 // Firebase
 import * as functions from 'firebase-functions';
 import * as admin from 'firebase-admin'
+
 // External Libraries
 import fetch from 'node-fetch'
+const HttpsProxyAgent = require('https-proxy-agent');
+const url = require('url')
+
 // Project type definitions & constants
 import {
     RewardItem,
@@ -40,12 +44,30 @@ interface embeddedResponsesType {
  * 
  * @returns {Promise<RewardItemp[]} The stripped-down Nintendo Store Reward items
 */
-const getRewardsList = async(categoryName: string): Promise<RewardItem[]> => {
+const getRewardsList = async( categoryName: string, proxy: string | null ): Promise<RewardItem[]> => {
 
     // The URL containing the RewardItem data
     const REWARDS_URL = 'https://my.nintendo.com/reward_categories';
 
-    const webpageData = await fetch(REWARDS_URL)
+    // Setup proxy for different region stores
+    let proxyAgent;
+    if( !proxy ) {
+        proxyAgent = null;
+    } else {
+        const {
+            username,
+            password,
+            ip,
+            port,
+        } = functions.config()[proxy]
+
+        const proxyOpts = url.parse(`http://${ip}:${port}`);
+        proxyOpts.auth = `${username}:${password}`;
+
+        proxyAgent = new HttpsProxyAgent(proxyOpts)
+    }
+
+    const webpageData = await fetch( REWARDS_URL, { agent: proxyAgent } )
     const webpageText = await webpageData.text()
 
     // Get line containing "embeddedResponses: "
@@ -83,10 +105,9 @@ const getRewardsList = async(categoryName: string): Promise<RewardItem[]> => {
  */
 export const rewardsSync_US = functions
     .runWith(RUN_OPTS)
-    .region(STORE_LOCATIONS.US.region)
     .pubsub.schedule(`every ${RUN_SCHEDULE} minutes`).onRun( async (context) => {
 
-        const rewardList: RewardItem[] = await getRewardsList(STORE_LOCATIONS.US.categoryName);
+        const rewardList: RewardItem[] = await getRewardsList(STORE_LOCATIONS.US.categoryName, STORE_LOCATIONS.US.proxy);
 
         const currentTimestamp = Date.now()
 
@@ -94,6 +115,24 @@ export const rewardsSync_US = functions
 
         // Update current reward data
         await db.collection('rewards').doc('US').set({
+            lastUpdatedAt: currentTimestamp,
+            rewards: rewardList,
+        })
+        
+        return null;
+})
+
+export const rewardsSync_GB = functions
+    .runWith(RUN_OPTS)
+    .pubsub.schedule(`every ${RUN_SCHEDULE} minutes`).onRun( async (context) => {
+        const rewardList: RewardItem[] = await getRewardsList(STORE_LOCATIONS.GB.categoryName, STORE_LOCATIONS.GB.proxy);
+
+        const currentTimestamp = Date.now()
+
+        const db = admin.firestore();
+
+        // Update current reward data
+        await db.collection('rewards').doc('GB').set({
             lastUpdatedAt: currentTimestamp,
             rewards: rewardList,
         })

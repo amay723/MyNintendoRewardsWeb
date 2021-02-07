@@ -1,10 +1,10 @@
 // LOCATIONS
-export type countryCode = 'US' | 'EU'
+export type countryCode = 'US' | 'GB'
 
 type storeLocationsData = {
     name: string;
     categoryName: string;
-    region: string;
+    proxy: string | null;
 }
 
 export type storeLocationsType = { 
