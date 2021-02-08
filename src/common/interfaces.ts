@@ -1,5 +1,5 @@
 // LOCATIONS
-export type countryCode = 'US' | 'GB'
+export type countryCode = 'US' | 'GB' | 'CA'
 
 type storeLocationsData = {
     name: string;

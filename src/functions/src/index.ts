@@ -140,6 +140,24 @@ export const rewardsSync_GB = functions
         return null;
 })
 
+export const rewardsSync_CA = functions
+    .runWith(RUN_OPTS)
+    .pubsub.schedule(`every ${RUN_SCHEDULE} minutes`).onRun( async (context) => {
+        const rewardList: RewardItem[] = await getRewardsList(STORE_LOCATIONS.CA.categoryName, STORE_LOCATIONS.CA.proxy);
+
+        const currentTimestamp = Date.now()
+
+        const db = admin.firestore();
+
+        // Update current reward data
+        await db.collection('rewards').doc('CA').set({
+            lastUpdatedAt: currentTimestamp,
+            rewards: rewardList,
+        })
+        
+        return null;
+})
+
 /**
  * Determines whether to send notifications when changes in the reward database is detected
  */

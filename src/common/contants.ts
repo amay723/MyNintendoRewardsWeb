@@ -23,9 +23,14 @@ export const STORE_LOCATIONS: storeLocationsType = {
         categoryName: 'nintendo_store',
         proxy: null
     },
+    CA: {
+        name: 'Canada',
+        categoryName: 'nintendo_store',
+        proxy: 'proxy-canada'
+    },
     GB: {
-        name: 'Europe (London)',
+        name: 'United Kingdom',
         categoryName: 'my_nintendo_store',
         proxy: 'proxy-london'
-    }
+    }    
 }
