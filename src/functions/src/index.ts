@@ -4,8 +4,6 @@ import * as admin from 'firebase-admin'
 
 // External Libraries
 import fetch from 'node-fetch'
-const HttpsProxyAgent = require('https-proxy-agent');
-const url = require('url')
 
 // Project type definitions & constants
 import {
@@ -17,6 +15,10 @@ import {
     RUN_SCHEDULE,
     STORE_LOCATIONS,
 } from '../../common/contants'
+
+// Proxy requests
+const HttpsProxyAgent = require('https-proxy-agent');
+const url = require('url')
 
 // Initialize Firebase Services
 admin.initializeApp();
@@ -50,10 +52,8 @@ const getRewardsList = async( categoryName: string, proxy: string | null ): Prom
     const REWARDS_URL = 'https://my.nintendo.com/reward_categories';
 
     // Setup proxy for different region stores
-    let proxyAgent;
-    if( !proxy ) {
-        proxyAgent = null;
-    } else {
+    let proxyAgent = null;
+    if( proxy ) {
         const {
             username,
             password,
@@ -141,7 +141,7 @@ export const rewardsSync_GB = functions
 })
 
 /**
- * Sends a topic notification if new rewards are detected
+ * Determines whether to send notifications when changes in the reward database is detected
  */
 export const sendNotificationOnNewRewards = functions
     .runWith(RUN_OPTS)
@@ -158,28 +158,62 @@ export const sendNotificationOnNewRewards = functions
             if( ! oldRewardIds.includes(newId) ) {
                 // If we find an item that was not in the previous list, it is new. Send
                 // a topic notification.
-                const message: admin.messaging.Message = {
-                    topic: 'new-rewards-' + context.params.locationId,
-                    notification: {
-                        title: `New ${context.params.locationId} Rewards`,
-                        body: 'Check the site for new or restocked rewards',
-                    },
-                    webpush: {
-                        notification: {
-                            requireInteraction: true,
-                        },
-                        fcmOptions: {
-                            link: SITE_URL,
-                        },
-                    },
-                }
-                return admin.messaging().send(message)
+                return sendNotifications(context.params.locationId)
             }
         }
 
         return null
     
-    });
+});
+
+/**
+ * Sends new rewards push notifications for the specified region
+ * @param {string} locationId The 2 character country code for the specified store region
+ */
+const sendNotifications = async (locationId: string) => {
+
+        const pushTopic = `new-rewards-${locationId}`
+        const pushTitle = `New ${locationId} Rewards`
+        const pushBody = 'Check My Nintendo for new or restocked rewards'
+
+        // FCM
+        const fcmNotification = admin.messaging().send({
+            topic: pushTopic,
+            notification: {
+                title: pushTitle,
+                body: pushBody,
+            },
+            webpush: {
+                notification: {
+                    requireInteraction: true,
+                },
+                fcmOptions: {
+                    link: SITE_URL,
+                },
+            },
+        })
+
+
+        // SPONTIT
+        const spontitNotification = fetch('https://api.spontit.com/v3/push', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Authorization': functions.config().spontit.api_key,
+                'X-UserId': functions.config().spontit.username,
+            },
+            body: JSON.stringify({
+                "channelName": `mynintendorewards${locationId.toLowerCase()}`,
+                "pushTitle": pushTitle,
+                "content": pushBody,
+                "link": SITE_URL,
+                "openLinkInApp": false,
+            }),
+        })
+
+
+        return await Promise.all([fcmNotification, spontitNotification])
+};
 
 /**
  * Adds or removes a device from a notification topic.

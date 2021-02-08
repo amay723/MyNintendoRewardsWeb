@@ -46,7 +46,7 @@ const NotificationIcon: React.FC<Props> = ({ storeSelectorRef }) => {
     const subscribeToTopic = () => {
 
         if( messaging === null ) {
-            alert('Your browser does not support web push notifications')
+            alert('Your browser does not support web push notifications. Click on the ⓘ button for alternative notification instructions.')
             return
         }
 
@@ -137,6 +137,15 @@ const NotificationIcon: React.FC<Props> = ({ storeSelectorRef }) => {
 
                 <Modal.Body>
                     <p>Clicking on the Notifications Bell will register you to receive notifications whenever new items are available in the <strong>My Nintendo Rewards Store</strong> for the selected region.</p>
+                </Modal.Body>
+
+                <Modal.Body>
+                    <h5>Mobile Notifications</h5>
+                    <p>
+                        In order to get push notifications on your mobile device, you must download the <a target="_blank" rel="noreferrer" href="https://spontit.com">Spontit </a>
+                        app, create an account, and follow the channels under <a target="_blank" rel="noreferrer" href="https://spontit.com/rootbearr">this</a> account for the 
+                        region you want to recieve notifications for. This also works for any desktop browsers that are unsupported.
+                    </p>
                 </Modal.Body>
 
                 <Modal.Footer>
