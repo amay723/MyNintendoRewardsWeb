@@ -4,11 +4,14 @@ import * as admin from 'firebase-admin'
 
 // External Libraries
 import fetch from 'node-fetch'
+import * as cheerio from 'cheerio';
 
 // Project type definitions & constants
 import {
     RewardItem,
     updateTopicSubscriptionData,
+    NextProps,
+    NewRewardItem,
 } from '../../common/interfaces'
 import {
     SITE_URL,
@@ -29,27 +32,30 @@ const RUN_OPTS: functions.RuntimeOptions = {
     timeoutSeconds: 15,
 }
 
-// Structure for the JSON object retrieved from the REWARDS_URL page
-interface embeddedResponsesType {
-    api_reward_list: { 
-        data: { 
-            items: RewardItem[];
-        };
-    };
-}
-
 /**
  * Scrapes the My Nintendo Rewards webpage to generate a current list of available
  * Reward Items.
  * 
- * @param categoryName The naming convention for a region's Nintendo Store items.
+ * @param {string | null}   proxy           Which proxy data to use from the Firebase Functions config.
  * 
- * @returns {Promise<RewardItemp[]} The stripped-down Nintendo Store Reward items
+ * @returns {Promise<NewRewardItem[]}          The Nintendo Store Reward items
 */
-const getRewardsList = async( categoryName: string, proxy: string | null ): Promise<RewardItem[]> => {
+const getRewardsList = async( proxy: string | null ): Promise<NewRewardItem[]> => {
 
     // The URL containing the RewardItem data
-    const REWARDS_URL = 'https://my.nintendo.com/reward_categories';
+    const REWARDS_URL = 'https://www.nintendo.com/store/exclusives/rewards/';
+
+    // Attempt to bypass any restrictions/rate limiting from Nintendo
+    const userAgents: string[] = [
+        // Desktop
+        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/42.0.2311.135 Safari/537.36 Edge/12.246',
+        'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_2) AppleWebKit/601.3.9 (KHTML, like Gecko) Version/9.0.2 Safari/601.3.9',
+        'Mozilla/5.0 (X11; CrOS x86_64 8172.45.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.64 Safari/537.36',
+        // Mobile
+        'Mozilla/5.0 (iPhone; CPU iPhone OS 12_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/12.0 Mobile/15E148 Safari/604.1',
+        'Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/604.1.38 (KHTML, like Gecko) Version/11.0 Mobile/15A372 Safari/604.1',
+        'Mozilla/5.0 (Linux; Android 8.0.0; SM-G960F Build/R16NW) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.84 Mobile Safari/537.36',
+    ]
 
     // Setup proxy for different region stores
     let proxyAgent = null;
@@ -67,32 +73,28 @@ const getRewardsList = async( categoryName: string, proxy: string | null ): Prom
         proxyAgent = new HttpsProxyAgent(proxyOpts)
     }
 
-    const webpageData = await fetch( REWARDS_URL, { agent: proxyAgent } )
+    // Fetch page content
+    const webpageData = await fetch( REWARDS_URL, {
+        agent: proxyAgent,
+        headers: {
+            'User-Agent': userAgents[Math.floor(Math.random() * userAgents.length)],
+        },
+    })
     const webpageText = await webpageData.text()
 
-    // Get line containing "embeddedResponses: "
-    const match = webpageText.match(/embeddedResponses: (.*)/g)
-    if( !match )
-        throw new Error("No matches for embeddedResponses")
-    const rewardsLine = match[0]
 
-    // Remove "JSON.parse(NEEDED_OBJECT)," enclosing NEEDED_OBJECT
-    const strippedLine = rewardsLine.replace(/(^.*JSON.parse\()|(\),$)/g, '')
+    // Parse page html
+    const $ = cheerio.load(webpageText)
 
-    // Convert escaped JSON string to normal JSON string
-    const embeddedResponsesStr = JSON.parse(strippedLine)
-    // Convert normal JSON string to JS Object
-    const embeddedResponses: embeddedResponsesType = JSON.parse(embeddedResponsesStr)
+    // Find element with __NEXT_DATA__ id, interpret contents as our reward item data
+    const nextPropsText = $('#__NEXT_DATA__').contents()
+    const nextPropsData: NextProps = JSON.parse(nextPropsText.text())
 
-    // Filter out all but nintendo_store items. Remove unneeded data to reduce bandwidth as 
-    // original object contains much more than just RewardItem properties
-    const nintendo_store_rewards: RewardItem[] = embeddedResponses.api_reward_list.data.items
-        .filter( (item: RewardItem) => item.category === categoryName )
-        .map( ({ title, category, type, id, beginsAt, endsAt, stock, points, links, images }): RewardItem => {
-            return { title, category, type, id, beginsAt, endsAt, stock, points, links, images }
-        })
+    const rewardItems = nextPropsData.props.pageProps.page.content.merchandisedGrid[0]
+    if( !rewardItems )
+        throw new Error("Unable to fetch reward items")
 
-    return nintendo_store_rewards;
+    return rewardItems;
 
 };
 
@@ -103,11 +105,15 @@ const getRewardsList = async( categoryName: string, proxy: string | null ): Prom
  * @param {string} region The region the function will run in
  * @param {number} RUN_SCHEDULE What minute interval the function will be run
  */
-export const rewardsSync_US = functions
+export const updateRewards = functions
     .runWith(RUN_OPTS)
-    .pubsub.schedule(`every ${RUN_SCHEDULE} minutes`).onRun( async (context) => {
+    .pubsub.schedule(`every ${RUN_SCHEDULE} minutes`)
+    .onRun( async (context) => {
 
-        const rewardList: RewardItem[] = await getRewardsList(STORE_LOCATIONS.US.categoryName, STORE_LOCATIONS.US.proxy);
+        const rewardList: NewRewardItem[] = await getRewardsList(STORE_LOCATIONS.US.proxy);
+
+        if( rewardList.length === 0 )
+            return
 
         const currentTimestamp = Date.now()
 
@@ -118,44 +124,6 @@ export const rewardsSync_US = functions
             lastUpdatedAt: currentTimestamp,
             rewards: rewardList,
         })
-        
-        return null;
-})
-
-export const rewardsSync_GB = functions
-    .runWith(RUN_OPTS)
-    .pubsub.schedule(`every ${RUN_SCHEDULE} minutes`).onRun( async (context) => {
-        const rewardList: RewardItem[] = await getRewardsList(STORE_LOCATIONS.GB.categoryName, STORE_LOCATIONS.GB.proxy);
-
-        const currentTimestamp = Date.now()
-
-        const db = admin.firestore();
-
-        // Update current reward data
-        await db.collection('rewards').doc('GB').set({
-            lastUpdatedAt: currentTimestamp,
-            rewards: rewardList,
-        })
-        
-        return null;
-})
-
-export const rewardsSync_CA = functions
-    .runWith(RUN_OPTS)
-    .pubsub.schedule(`every ${RUN_SCHEDULE} minutes`).onRun( async (context) => {
-        const rewardList: RewardItem[] = await getRewardsList(STORE_LOCATIONS.CA.categoryName, STORE_LOCATIONS.CA.proxy);
-
-        const currentTimestamp = Date.now()
-
-        const db = admin.firestore();
-
-        // Update current reward data
-        await db.collection('rewards').doc('CA').set({
-            lastUpdatedAt: currentTimestamp,
-            rewards: rewardList,
-        })
-        
-        return null;
 })
 
 /**
@@ -176,7 +144,8 @@ export const sendNotificationOnNewRewards = functions
             if( ! oldRewardIds.includes(newId) ) {
                 // If we find an item that was not in the previous list, it is new. Send
                 // a topic notification.
-                return sendNotifications(context.params.locationId)
+                // return sendNotifications(context.params.locationId)
+                console.log("New reward found:", newId)
             }
         }
 
@@ -188,6 +157,7 @@ export const sendNotificationOnNewRewards = functions
  * Sends new rewards push notifications for the specified region
  * @param {string} locationId The 2 character country code for the specified store region
  */
+// @ts-ignore
 const sendNotifications = async (locationId: string) => {
 
         const pushTopic = `new-rewards-${locationId}`

@@ -1,7 +1,8 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import Toasts from './components/Toasts/Toasts'
 import NotificationIcon from './components/NotificationIcon/NotificationIcon'
 import RewardItems from './components/RewardItems/RewardItems'
+import Navbar from './components/Navbar/Navbar'
 import Footer from './components/Footer/Footer'
 import { countryCode } from '../common/interfaces'
 import { 
@@ -13,6 +14,14 @@ import './App.css';
 
 
 const App = () => {
+
+  /**
+   * Temporary enforcement of US store, as other stores have old data layout which will
+   * break the site.
+   */
+  useEffect( () => {
+    localStorage.setItem(REWARD_LOCATION_STORAGE_NAME, 'US')
+  }, [])
 
   const [lastUpdated, setLastUpdated] = useState<number | null>(null)
   const [storeLocation, setStoreLocation] = useState(localStorage.getItem(REWARD_LOCATION_STORAGE_NAME))
@@ -30,11 +39,7 @@ const App = () => {
       <div className="App">
         <Toasts />
 
-        <div className="alert alert-secondary">
-          <u>
-            <strong>NOTICE:</strong> Item specific stock amounts are no longer available
-          </u>
-        </div>
+        <Navbar />
 
         <h2 className="updated-title">
           Last Updated At: { lastUpdated ? new Date(lastUpdated).toLocaleString() : "loading..."}
@@ -51,7 +56,11 @@ const App = () => {
 
               <option disabled>Choose Store Location...</option>
               { Object.keys(STORE_LOCATIONS).map( locationId => (
-                  <option key={locationId} value={locationId}>
+                  <option
+                    key={locationId}
+                    value={locationId}
+                    disabled={!STORE_LOCATIONS[locationId as countryCode].enabled}
+                  >
                     {STORE_LOCATIONS[locationId as countryCode].name}
                   </option>
                 ))

@@ -1,9 +1,7 @@
 # My Nintendo Rewards
 
 ## Description
-This project focuses on giving a clearer picture on what items are available in the [My Nintendo Rewards Store](hhttps://my.nintendo.com/reward_categories/nintendo_store), as well as gives users the option to opt-in to Notifications whenever a new item is available or old item is restocked.
-
-Each reward item displayed shows its available stock in realtime (after each update interval). Rewards are shown based on the selected region.
+This project focuses on giving a clearer picture on what items are available in the [My Nintendo Rewards Store](hhttps://my.nintendo.com/reward_categories/nintendo_store), as well as gives users the option to opt-in to Notifications whenever a new item is available or old item is restocked. Rewards are shown based on the selected region.
 
 ## Tools Used
 - [ReactJS](https://reactjs.org/)

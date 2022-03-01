@@ -7,8 +7,7 @@ module.exports = {
   extends: [
     "plugin:import/errors",
     "plugin:import/warnings",
-    "plugin:import/typescript",
-    "react-app"
+    "plugin:import/typescript"
   ],
   parser: "@typescript-eslint/parser",
   parserOptions: {
@@ -19,6 +18,7 @@ module.exports = {
     "@typescript-eslint",
     "import",
   ],
+  root: true,
   rules: {
     "@typescript-eslint/adjacent-overload-signatures": "error",
     "@typescript-eslint/no-empty-function": "error",

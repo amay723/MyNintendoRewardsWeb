@@ -5,6 +5,7 @@ type storeLocationsData = {
     name: string;
     categoryName: string;
     proxy: string | null;
+    enabled: boolean;
 }
 
 export type storeLocationsType = { 
@@ -53,4 +54,30 @@ export type RewardHistoryItem = {
 }
 export interface RewardHistory {
   [id: string]: RewardHistoryItem[];
+}
+
+export interface NewRewardItem {
+  CONTENT_TYPE: string;
+  sku: string;
+  name: string;
+  urlKey: string;
+  categories: string[];
+  platinumPoints: string;
+  productImage: {
+    publicId: string;
+  }
+}
+
+export interface NextProps {
+  props: {
+    pageProps: {
+      page: {
+        content: {
+          merchandisedGrid: {
+            0: NewRewardItem[]
+          };
+        };
+      };
+    }
+  }
 }

@@ -1,8 +1,13 @@
 import { useState, useEffect } from 'react'
 import { firestore } from '../../firebase'
-import { RewardItem } from '../../../common/interfaces'
-import './RewardItems.css'
+import { NewRewardItem } from '../../../common/interfaces'
 
+import {
+  NINTENDO_PRODUCT_PREFIX,
+  NINTENTO_IMAGE_PREFIX
+} from '../../../common/contants'
+
+import './RewardItems.css'
 
 interface Props {
   setLastUpdated: React.Dispatch<React.SetStateAction<number | null>>;
@@ -12,7 +17,7 @@ interface Props {
 
 const RewardItems: React.FC<Props> = ({ setLastUpdated, storeLocation, storeSelectorRef }) => {
 
-  const [rewards, setRewards] = useState<RewardItem[] | null>(null)
+  const [rewards, setRewards] = useState<NewRewardItem[] | null>(null)
 
   useEffect( () => {
     const snapshotUnsubscribe = firestore.collection('rewards').doc(storeSelectorRef.current?.value)
@@ -23,33 +28,32 @@ const RewardItems: React.FC<Props> = ({ setLastUpdated, storeLocation, storeSele
       })
     return snapshotUnsubscribe
     }, [setLastUpdated, storeLocation, storeSelectorRef])
-  
-  // Calculates whether an item was published within the last week
-  const isNewItem = (itemBeginsAt: number) => {
-    return (Date.now() / 1000 - itemBeginsAt) < 604800
-  }
 
   return (
     <div className="card-group">
       
       { rewards !== null ?
-        rewards.map( (item: RewardItem) => (
-          <div className="card" key={item.id}>
+        rewards.map( (item: NewRewardItem) => (
+          <div className="card" key={item.sku}>
 
-            { isNewItem(item.beginsAt) &&
-              <i className="new-item" />
-            }
-
-            <a href={item.links.myNintendo.href} target="_blank" rel="noreferrer noopener">
-              <img className="card-img-top" src={item.images.default.url} alt={item.title} />
+            <a
+              href={ NINTENDO_PRODUCT_PREFIX + item.urlKey }
+              target="_blank"
+              rel="noreferrer noopener"
+            >
+              <img
+                className="card-img-top"
+                src={NINTENTO_IMAGE_PREFIX + item.productImage.publicId}
+                alt={item.name}
+              />
             </a>
             <div className="card-body">
-              <h5 className="card-title">{item.title}</h5>
+              <h5 className="card-title">{item.name}</h5>
               
             </div>
             <div className="card-footer">
-              <small className={item.stock.available ? "text-success" : "red"}><strong>{ item.stock.available ? "AVAILABLE" : "OUT OF STOCK"}</strong></small>
-              <small className={item.points[0].category}><strong>{`Cost: ${item.points[0].amount}`}</strong></small>
+              <small className={true ? "text-success" : "red"}><strong>{ true ? "AVAILABLE" : "OUT OF STOCK"}</strong></small>
+              <small className="platinum"><strong>{`Cost: ${item.platinumPoints}`}</strong></small>
             </div>
           </div> 
         )) :
